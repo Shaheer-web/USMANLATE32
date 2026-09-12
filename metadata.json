@@ -1,0 +1,7 @@
+{
+  "name": "Usman Public School System - Campus 32 Late Student Management",
+  "description": "Late Student Management Web Application for Usman Public School System (Campus 32), featuring real-time late tracking, automated warning registries, admin security, and student suggestions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        try {
+          var currentFetch = window.fetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return currentFetch;
+            },
+            set: function(val) {
+              currentFetch = val;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          try {
+            var protoFetch = Window.prototype.fetch;
+            Object.defineProperty(Window.prototype, 'fetch', {
+              get: function() {
+                return protoFetch;
+              },
+              set: function(val) {
+                protoFetch = val;
+              },
+              configurable: true,
+              enumerable: true
+            });
+          } catch (e2) {}
+        }
+
+        window.addEventListener('error', function(event) {
+          if (event && event.message && event.message.indexOf('fetch') !== -1 && event.message.indexOf('getter') !== -1) {
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+          }
+        }, true);
+      })();
+    </script>
+    <title>Usman Public School System - Campus 32 Late Student Management</title>
+    <link rel="icon" type="image/jpeg" href="/upss-logo.jpg" />
+    <meta name="description" content="Late Student Management Web Application for Usman Public School System (Campus 32), featuring real-time late tracking, automated warning registries, admin security, and student suggestions." />
+    <meta property="og:title" content="Usman Public School System - Campus 32 Late Student Management" />
+    <meta property="og:description" content="Late Student Management Web Application for Usman Public School System (Campus 32), featuring real-time late tracking, automated warning registries, admin security, and student suggestions." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#f7f9f7] text-[#1a2e22] antialiased selection:bg-emerald-200 selection:text-emerald-900 min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
