@@ -16,6 +16,7 @@ import { WarningRegistry } from './components/WarningRegistry';
 import { SuggestionsBoard } from './components/SuggestionsBoard';
 import { AboutJourney } from './components/AboutJourney';
 import { ShieldCheck, Heart, Lock, Unlock } from 'lucide-react';
+import { fetchRemoteData, saveSuggestionsToRemote, saveStudentsToRemote } from './utils/api';
 
 const STORAGE_KEYS = {
   STUDENTS: 'upss_c32_students_v2',
@@ -73,22 +74,68 @@ export default function App() {
     return INITIAL_SUGGESTIONS;
   });
 
-  // Sync students to localStorage
+  // Remote Backend Synchronization (InfinityFree / Live Shared Database)
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRemote = async () => {
+      const remote = await fetchRemoteData();
+      if (!isMounted) return;
+
+      if (remote.suggestions && remote.suggestions.length > 0) {
+        setSuggestions(remote.suggestions);
+      }
+      if (remote.students && Array.isArray(remote.students)) {
+        setStudents(remote.students);
+      }
+    };
+
+    // Load immediately on page open
+    loadRemote();
+
+    // Poll every 8 seconds so suggestions/students posted by other users appear live
+    const interval = setInterval(loadRemote, 8000);
+
+    // Cross-tab synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.SUGGESTIONS && e.newValue) {
+        try {
+          setSuggestions(JSON.parse(e.newValue));
+        } catch {}
+      }
+      if (e.key === STORAGE_KEYS.STUDENTS && e.newValue) {
+        try {
+          setStudents(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Sync students to localStorage & Remote API
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
     } catch (e) {
       console.error('Failed to save students to localStorage:', e);
     }
+    saveStudentsToRemote(students);
   }, [students]);
 
-  // Sync suggestions to localStorage
+  // Sync suggestions to localStorage & Remote API
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.SUGGESTIONS, JSON.stringify(suggestions));
     } catch (e) {
       console.error('Failed to save suggestions to localStorage:', e);
     }
+    saveSuggestionsToRemote(suggestions);
   }, [suggestions]);
 
   // Handle Admin Authorization Request

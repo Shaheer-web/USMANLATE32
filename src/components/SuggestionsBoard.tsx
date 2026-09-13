@@ -193,14 +193,14 @@ export const SuggestionsBoard: React.FC<SuggestionsBoardProps> = ({
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <span className="text-[11px] text-slate-400 order-2 sm:order-1">
               All comments are treated with Islamic decorum, mutual respect, and constructive encouragement.
             </span>
 
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-800 to-teal-800 hover:from-emerald-900 hover:to-teal-900 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-800 to-teal-800 hover:from-emerald-900 hover:to-teal-900 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-2 order-1 sm:order-2 active:scale-95"
             >
               <Send className="w-3.5 h-3.5 text-amber-300" />
               <span>Post Suggestion</span>
@@ -209,14 +209,14 @@ export const SuggestionsBoard: React.FC<SuggestionsBoardProps> = ({
         </form>
       </div>
 
-      {/* Filter Category Bar */}
+      {/* Filter Category Bar with horizontal scrolling on mobile */}
       <div className="flex items-center justify-between flex-wrap gap-3 pb-1 border-b border-slate-200">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <Filter className="w-4 h-4 text-emerald-700" />
           <span>Filter by Category:</span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none">
           <button
             onClick={() => setFilterCategory('all')}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition cursor-pointer ${

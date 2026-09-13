@@ -241,14 +241,14 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
         </div>
       </div>
 
-      {/* Public Late List Table */}
+      {/* Public Late List Table & Mobile Card View */}
       <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/10 overflow-hidden">
         {/* Table Top Header with Sort Notice */}
-        <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white flex flex-wrap items-center justify-between gap-2">
+        <div className="px-4 sm:px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4 text-amber-400" />
+            <ArrowUpDown className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="text-xs md:text-sm font-semibold text-amber-200">
-              Automatic Sorting Applied: Students with 3 or more lates automatically float to the top
+              Automatic Sorting Applied: 3+ lates float to the top
             </span>
           </div>
           <span className="text-xs text-emerald-300 font-mono">
@@ -256,8 +256,123 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
           </span>
         </div>
 
-        {/* Data Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile Friendly Card View (shown only on phones < md) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {filteredStudents.length === 0 ? (
+            <div className="py-12 px-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-2">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800 font-serif">
+                {students.length === 0 ? 'No Late Student Records' : 'No Matching Records'}
+              </h4>
+              <p className="text-xs text-slate-500 mt-1">
+                {students.length === 0
+                  ? 'Zero late entries logged for Campus 32.'
+                  : 'Try changing the search filter or class category above.'}
+              </p>
+            </div>
+          ) : (
+            filteredStudents.map((student, idx) => {
+              const isThreeOrMore = student.lateCount >= 3;
+              const isFourOrMore = student.lateCount >= 4;
+
+              return (
+                <div
+                  key={student.id}
+                  className={`p-4 space-y-2.5 transition-colors ${
+                    isFourOrMore
+                      ? 'bg-rose-50/60'
+                      : isThreeOrMore
+                      ? 'bg-amber-50/50'
+                      : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {isThreeOrMore ? (
+                        <div className="relative flex items-center justify-center flex-shrink-0">
+                          <span className="absolute inline-flex h-3.5 w-3.5 rounded-full bg-rose-400 opacity-75 animate-ping"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600 ring-2 ring-white"></span>
+                        </div>
+                      ) : (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 font-mono text-sm">
+                            {student.name}
+                          </span>
+                          {isThreeOrMore && (
+                            <AlertTriangle
+                              className={`w-3.5 h-3.5 ${
+                                isFourOrMore ? 'text-rose-600' : 'text-amber-600'
+                              }`}
+                            />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          ID: {student.id.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Badge */}
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full font-bold font-mono text-xs ${
+                        isFourOrMore
+                          ? 'bg-rose-600 text-white shadow-xs animate-pulse'
+                          : isThreeOrMore
+                          ? 'bg-amber-500 text-emerald-950 shadow-xs'
+                          : student.lateCount === 2
+                          ? 'bg-emerald-100 text-emerald-900'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {student.lateCount} Late{student.lateCount > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-900 font-semibold font-mono text-[11px]">
+                      Class {student.classNum} &bull; Sec {student.section}
+                    </span>
+
+                    <div className="flex items-center gap-1 text-slate-500 text-[11px] font-mono">
+                      <Calendar className="w-3 h-3 text-slate-400" />
+                      <span>{student.lastDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-0.5">
+                    {isFourOrMore ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300">
+                        <MailCheck className="w-3 h-3 text-rose-600" />
+                        <span>Routed to Gmail Admin</span>
+                      </span>
+                    ) : isThreeOrMore ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-300">
+                        <AlertTriangle className="w-3 h-3 text-amber-700" />
+                        <span>Warning Registry Flagged</span>
+                      </span>
+                    ) : student.lateCount === 2 ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-50 text-yellow-800 text-[10px] font-medium border border-yellow-200">
+                        <span>2nd Notice / Caution</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-medium border border-emerald-200">
+                        <span>1st Warning / Active</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Data Table (hidden on mobile, visible on md+) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs md:text-sm">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
               <tr>
