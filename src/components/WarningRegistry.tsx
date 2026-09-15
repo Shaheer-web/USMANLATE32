@@ -180,7 +180,7 @@ export const WarningRegistry: React.FC<WarningRegistryProps> = ({
                             Warning Level 3
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 mt-1">
                           <span className="font-medium text-emerald-900 font-mono">
                             Class {student.classNum}-{student.section}
                           </span>
@@ -189,10 +189,14 @@ export const WarningRegistry: React.FC<WarningRegistryProps> = ({
                             <Calendar className="w-3 h-3 text-slate-400" />
                             Latest: {student.lastDate}
                           </span>
-                          <span>&bull;</span>
-                          <span className="text-[11px] text-slate-400">
-                            Recorded dates: {student.datesHistory.join(', ')}
-                          </span>
+                          {student.datesHistory.length > 0 && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="text-[11px] text-slate-400 break-words">
+                                Dates: {student.datesHistory.join(', ')}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

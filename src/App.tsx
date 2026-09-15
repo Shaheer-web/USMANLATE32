@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   StudentEntry, 
@@ -380,6 +380,10 @@ Campus 32 Punctuality & Gate Administration Portal`,
     });
   };
 
+  const handleWelcomeComplete = useCallback(() => {
+    setShowWelcome(false);
+  }, []);
+
   const warningCount = students.filter((s) => s.lateCount === 3).length;
 
   return (
@@ -387,7 +391,7 @@ Campus 32 Punctuality & Gate Administration Portal`,
       {/* Starting Welcome Animation Splash */}
       <AnimatePresence>
         {showWelcome && (
-          <WelcomeAnimation onComplete={() => setShowWelcome(false)} />
+          <WelcomeAnimation onComplete={handleWelcomeComplete} />
         )}
       </AnimatePresence>
 

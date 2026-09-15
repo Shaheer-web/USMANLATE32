@@ -10,19 +10,16 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Strictly disable pinch/double-tap zoom on all elements */
+/* Strictly disable double-tap / pinch zoom gestures */
 * {
   touch-action: manipulation;
 }
 
-/* Prevent auto-zooming on focus in iOS Safari & Android Chrome by ensuring 16px minimum font size */
-input, select, textarea, button {
-  font-size: 16px;
-  touch-action: manipulation;
-}
-
-@media (min-width: 640px) {
-  input, select, textarea {
-    font-size: 0.875rem; /* 14px on desktop */
+/* Prevent auto-zooming on focus in mobile browsers strictly on form fields only */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]), 
+  select, 
+  textarea {
+    font-size: 16px !important;
   }
 }
