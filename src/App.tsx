@@ -49,6 +49,15 @@ export default function App() {
   // 3-times & 4-times email dispatch alert
   const [emailAlert, setEmailAlert] = useState<EmailDispatchAlert | null>(null);
 
+  // Names and IDs of any dummy mock records to strictly exclude
+  const BANNED_MOCK_ENTRIES = [
+    'upss-1', 'upss-2', 'upss-3', 'upss-4', 'upss-5',
+    'upss-std-1', 'upss-std-2', 'upss-std-3', 'upss-std-4', 'upss-std-5', 'upss-std-6', 'upss-std-7',
+    'stu-1', 'stu-2', 'stu-3',
+    'ayesha tariq', 'fatima zahra', 'zainab bilal', 'maryam ahmed', 'hafsa noor',
+    'amina khan', 'khadija fatima', 'sumaiyah rehman', 'ayesha khan', 'zainab ahmed', 'maryam bilal'
+  ];
+
   // Global persistent state for students: STRICTLY NO PRE-ADDED STUDENTS
   const [students, setStudents] = useState<StudentEntry[]>(() => {
     try {
@@ -56,16 +65,18 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Strictly exclude any pre-added dummy mock students
+          // Strictly exclude any pre-added dummy mock student data
           const userOnly = parsed.filter(
             (s) =>
               s &&
               s.id &&
-              !['upss-1', 'upss-2', 'upss-3', 'upss-4', 'upss-5'].includes(s.id) &&
-              !['ayesha tariq', 'fatima zahra', 'zainab bilal', 'maryam ahmed', 'hafsa noor'].includes(
-                s.name?.trim().toLowerCase()
-              )
+              s.name &&
+              !BANNED_MOCK_ENTRIES.includes(s.id) &&
+              !BANNED_MOCK_ENTRIES.includes(s.name.trim().toLowerCase())
           );
+          try {
+            localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(userOnly));
+          } catch {}
           return userOnly;
         }
       }
@@ -117,7 +128,14 @@ export default function App() {
       if (remote.students && Array.isArray(remote.students) && remote.students.length > 0) {
         setStudents((currentLocal) => {
           if (currentLocal.length > 0) return currentLocal;
-          return remote.students!;
+          const userOnlyRemote = remote.students!.filter(
+            (s) =>
+              s &&
+              s.name &&
+              !BANNED_MOCK_ENTRIES.includes(s.id) &&
+              !BANNED_MOCK_ENTRIES.includes(s.name.trim().toLowerCase())
+          );
+          return userOnlyRemote;
         });
       }
     };
