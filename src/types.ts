@@ -33,4 +33,7 @@ export interface EmailDispatchAlert {
   lateCount: number;
   timestamp: string;
   recipient: string;
+  teacherEmail?: string;
+  mailSubject?: string;
+  mailBody?: string;
 }

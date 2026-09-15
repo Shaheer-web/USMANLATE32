@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+html, body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Strictly disable pinch/double-tap zoom on all elements */
+* {
+  touch-action: manipulation;
+}
+
+/* Prevent auto-zooming on focus in iOS Safari & Android Chrome by ensuring 16px minimum font size */
+input, select, textarea, button {
+  font-size: 16px;
+  touch-action: manipulation;
+}
+
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: 0.875rem; /* 14px on desktop */
+  }
+}

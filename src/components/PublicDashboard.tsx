@@ -1,22 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'motion/react';
+import { 
+  StudentEntry 
+} from '../types';
 import { 
   Search, 
-  Filter, 
   AlertTriangle, 
-  ShieldAlert, 
-  Calendar, 
   UserCheck, 
   Clock, 
-  ArrowUpDown, 
+  MailCheck, 
+  ShieldAlert, 
+  Calendar, 
   PlusCircle, 
-  Lock,
-  MailCheck,
-  Building2,
+  ArrowUpDown,
+  Filter,
+  CheckCircle2,
   FileSpreadsheet,
-  CheckCircle2
+  Building2
 } from 'lucide-react';
-import { StudentEntry } from '../types';
 
 interface PublicDashboardProps {
   students: StudentEntry[];
@@ -35,166 +35,156 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'warning' | 'normal'>('all');
 
-  // Strict sorting requirement:
-  // "Students with a late count of 3 or more must automatically float to the absolute top of the table."
-  const sortedStudents = useMemo(() => {
-    return [...students].sort((a, b) => {
-      const aIsWarning = a.lateCount >= 3 ? 1 : 0;
-      const bIsWarning = b.lateCount >= 3 ? 1 : 0;
-
-      // 1. Primary rule: 3 or more lates float to the absolute top
-      if (aIsWarning !== bIsWarning) {
-        return bIsWarning - aIsWarning;
-      }
-
-      // 2. Secondary rule: Highest late count first
-      if (b.lateCount !== a.lateCount) {
-        return b.lateCount - a.lateCount;
-      }
-
-      // 3. Tertiary rule: Most recent date first
-      return new Date(b.lastDate).getTime() - new Date(a.lastDate).getTime();
-    });
-  }, [students]);
-
-  // Apply search and filter
+  // Filter and sort students: 3+ lates float to the top automatically
   const filteredStudents = useMemo(() => {
-    return sortedStudents.filter((student) => {
-      const matchesSearch =
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `class ${student.classNum}`.includes(searchTerm.toLowerCase()) ||
-        student.section.toLowerCase().includes(searchTerm.toLowerCase());
+    return students
+      .filter((student) => {
+        const matchesSearch =
+          student.name.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+          student.id.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
+          `${student.classNum}-${student.section}`.toLowerCase().includes(searchTerm.toLowerCase().trim());
 
-      const matchesClass =
-        selectedClass === 'all' || student.classNum.toString() === selectedClass;
+        const matchesClass =
+          selectedClass === 'all' || student.classNum.toString() === selectedClass;
 
-      const matchesFilter =
-        selectedFilter === 'all'
-          ? true
-          : selectedFilter === 'warning'
-          ? student.lateCount >= 3
-          : student.lateCount < 3;
+        const matchesStatus =
+          selectedFilter === 'all'
+            ? true
+            : selectedFilter === 'warning'
+            ? student.lateCount >= 3
+            : student.lateCount < 3;
 
-      return matchesSearch && matchesClass && matchesFilter;
-    });
-  }, [sortedStudents, searchTerm, selectedClass, selectedFilter]);
+        return matchesSearch && matchesClass && matchesStatus;
+      })
+      .sort((a, b) => {
+        // Priority 1: High alert count (3+) on top
+        if (a.lateCount >= 3 && b.lateCount < 3) return -1;
+        if (b.lateCount >= 3 && a.lateCount < 3) return 1;
 
-  // Summary Metrics
-  const totalLateTally = students.reduce((sum, s) => sum + s.lateCount, 0);
-  const warningListCount = students.filter((s) => s.lateCount === 3).length;
+        // Priority 2: Highest late count descending
+        if (b.lateCount !== a.lateCount) {
+          return b.lateCount - a.lateCount;
+        }
+
+        // Priority 3: Alphabetical by student name
+        return a.name.localeCompare(b.name);
+      });
+  }, [students, searchTerm, selectedClass, selectedFilter]);
+
+  // Overall metric calculations
+  const totalLateTally = students.reduce((acc, curr) => acc + curr.lateCount, 0);
+  const warningListCount = students.filter((s) => s.lateCount >= 3).length;
   const criticalListCount = students.filter((s) => s.lateCount >= 4).length;
 
   return (
-    <div className="space-y-6">
-      {/* Welcome & System Introduction Banner */}
-      <div className="bg-white rounded-2xl p-5 md:p-6 shadow-xs border border-emerald-900/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Top Banner: Spacious, clean, airy */}
+      <div className="bg-white rounded-2xl p-5 sm:p-7 shadow-xs border border-emerald-900/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
-              Public Ledger
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs tracking-wide">
+              Campus 32 &bull; Girls Section
             </span>
-            <span className="text-xs text-slate-500">Live Campus Attendance & Gate Log</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">Daily Assembly & Gate Ledger</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold font-serif text-emerald-950">
-            Morning Late Attendance Ledger &bull; Campus 32
+          <h2 className="text-xl sm:text-2xl font-bold font-serif text-emerald-950">
+            Morning Late Attendance Ledger
           </h2>
-          <p className="text-xs md:text-sm text-slate-600 max-w-2xl leading-relaxed">
-            Punctuality is a core virtue of Islamic conduct at Usman Public School System. Late records are transparently logged to foster accountability, discipline, and regular morning assembly attendance.
+          <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+            Transparent punctuality records fostering Islamic discipline and morning assembly punctuality.
           </p>
         </div>
 
         <button
           onClick={onOpenManagement}
-          className="px-4 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-amber-300 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer whitespace-nowrap self-stretch md:self-auto justify-center"
+          className="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-amber-300 font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0 active:scale-98"
         >
           {isAdminUnlocked ? (
             <>
-              <PlusCircle className="w-4 h-4 text-emerald-400" />
-              <span>Add Student Late Entry</span>
+              <PlusCircle className="w-4 h-4 text-amber-400" />
+              <span>Add Student Entry</span>
             </>
           ) : (
             <>
-              <Lock className="w-4 h-4 text-amber-400" />
-              <span>Admin: Add Entry</span>
+              <PlusCircle className="w-4 h-4 text-amber-400" />
+              <span>Admin: Record Late Entry</span>
             </>
           )}
         </button>
       </div>
 
-      {/* KPI Stats Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Stats Bar: Roomy cards with generous padding */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         {/* Total Registered Students */}
-        <div className="bg-white rounded-xl p-4 shadow-xs border border-slate-200 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
-            <UserCheck className="w-5 h-5" />
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 flex items-center gap-3.5">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+            <UserCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Students Logged</div>
-            <div className="text-xl font-bold text-emerald-950 font-serif">{students.length}</div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Students</div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-950 font-serif leading-tight mt-0.5">{students.length}</div>
           </div>
         </div>
 
         {/* Total Late Incidents */}
-        <div className="bg-white rounded-xl p-4 shadow-xs border border-slate-200 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700">
-            <Clock className="w-5 h-5" />
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 flex items-center gap-3.5">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Late Incidents</div>
-            <div className="text-xl font-bold text-teal-950 font-serif">{totalLateTally}</div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Lates</div>
+            <div className="text-xl sm:text-2xl font-bold text-teal-950 font-serif leading-tight mt-0.5">{totalLateTally}</div>
           </div>
         </div>
 
-        {/* 3-Times Warning Watchlist */}
+        {/* 3-Times Warning Tier */}
         <div 
           onClick={onSelectWarningTab}
-          className="bg-amber-50/70 hover:bg-amber-100/70 transition rounded-xl p-4 shadow-xs border border-amber-300 flex items-center gap-3 cursor-pointer group"
+          className="bg-amber-50/80 hover:bg-amber-100/80 transition rounded-2xl p-4 sm:p-5 shadow-xs border border-amber-300 flex items-center gap-3.5 cursor-pointer group"
           title="Click to view dedicated 3-Times Warning Registry"
         >
-          <div className="w-11 h-11 rounded-lg bg-amber-200/70 border border-amber-300 flex items-center justify-center text-amber-900 group-hover:scale-105 transition">
-            <ShieldAlert className="w-5 h-5 text-amber-700" />
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-200/70 border border-amber-300 flex items-center justify-center text-amber-900 group-hover:scale-105 transition shrink-0">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700" />
           </div>
-          <div>
-            <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
-              <span>3-Times Warning</span>
-              <span className="text-[10px] underline text-amber-900 font-normal">View Tab &rarr;</span>
-            </div>
-            <div className="text-xl font-bold text-amber-950 font-serif">{warningListCount} Students</div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-amber-800 uppercase tracking-wider truncate">3-Late Alerts</div>
+            <div className="text-xl sm:text-2xl font-bold text-amber-950 font-serif leading-tight mt-0.5">{warningListCount}</div>
           </div>
         </div>
 
         {/* 4+ Incidents Gmail Dispatched */}
-        <div className="bg-rose-50/70 rounded-xl p-4 shadow-xs border border-rose-200 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700">
-            <MailCheck className="w-5 h-5" />
+        <div className="bg-rose-50/80 rounded-2xl p-4 sm:p-5 shadow-xs border border-rose-200 flex items-center gap-3.5">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
+            <MailCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">4+ Gmail Escalations</div>
-            <div className="text-xl font-bold text-rose-950 font-serif">{criticalListCount} Students</div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-rose-800 uppercase tracking-wider truncate">4+ Escalated</div>
+            <div className="text-xl sm:text-2xl font-bold text-rose-950 font-serif leading-tight mt-0.5">{criticalListCount}</div>
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Toolbar */}
-      <div className="bg-white rounded-xl p-4 shadow-xs border border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        {/* Search */}
+      {/* Filter & Search Toolbar: Spacious, comfortable */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 sm:gap-4">
+        {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by student name (lowercase) or class section..."
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-xs md:text-sm focus:border-emerald-600 focus:outline-none bg-slate-50/50"
+            placeholder="Search by student name, roll number, or class..."
+            className="w-full pl-11 pr-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-emerald-600 focus:outline-none bg-slate-50/60 focus:bg-white transition"
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {/* Class Filter */}
+        {/* Filter controls */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+          {/* Class Selector */}
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50/50 text-xs font-medium focus:border-emerald-600 focus:outline-none cursor-pointer"
+            className="px-3.5 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50/60 text-xs sm:text-sm font-semibold focus:border-emerald-600 focus:outline-none cursor-pointer"
           >
             <option value="all">All Classes (6-10)</option>
             <option value="6">Class 6</option>
@@ -204,11 +194,11 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
             <option value="10">Class 10</option>
           </select>
 
-          {/* Status Filter */}
-          <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+          {/* Status Pills */}
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
             <button
               onClick={() => setSelectedFilter('all')}
-              className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition cursor-pointer ${
                 selectedFilter === 'all'
                   ? 'bg-white text-emerald-950 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -218,18 +208,18 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
             </button>
             <button
               onClick={() => setSelectedFilter('warning')}
-              className={`px-3 py-1.5 rounded-md transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
                 selectedFilter === 'warning'
-                  ? 'bg-amber-500 text-emerald-950 shadow-xs'
+                  ? 'bg-amber-500 text-emerald-950 shadow-xs font-bold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <AlertTriangle className="w-3 h-3 text-amber-700" />
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
               <span>Warnings (3+)</span>
             </button>
             <button
               onClick={() => setSelectedFilter('normal')}
-              className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition cursor-pointer ${
                 selectedFilter === 'normal'
                   ? 'bg-white text-emerald-950 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -244,10 +234,10 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
       {/* Public Late List Table & Mobile Card View */}
       <div className="bg-white rounded-2xl shadow-sm border border-emerald-900/10 overflow-hidden">
         {/* Table Top Header with Sort Notice */}
-        <div className="px-4 sm:px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="px-5 py-4 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <ArrowUpDown className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-xs md:text-sm font-semibold text-amber-200">
+            <span className="text-xs sm:text-sm font-semibold text-amber-200">
               Automatic Sorting Applied: 3+ lates float to the top
             </span>
           </div>
@@ -256,62 +246,62 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
           </span>
         </div>
 
-        {/* Mobile Friendly Card View (shown only on phones < md) */}
-        <div className="md:hidden divide-y divide-slate-100">
+        {/* Mobile Friendly Card View: Airy, open cards with comfortable spacing */}
+        <div className="md:hidden p-3.5 sm:p-5 bg-slate-50/50 space-y-3.5">
           {filteredStudents.length === 0 ? (
-            <div className="py-12 px-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-2">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="py-14 px-4 text-center bg-white rounded-2xl border border-slate-200/80">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-3">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h4 className="text-sm font-bold text-slate-800 font-serif">
+              <h4 className="text-base font-bold text-slate-800 font-serif">
                 {students.length === 0 ? 'No Late Student Records' : 'No Matching Records'}
               </h4>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1.5 max-w-xs mx-auto">
                 {students.length === 0
                   ? 'Zero late entries logged for Campus 32.'
-                  : 'Try changing the search filter or class category above.'}
+                  : 'Try adjusting the search filter or class category above.'}
               </p>
             </div>
           ) : (
-            filteredStudents.map((student, idx) => {
+            filteredStudents.map((student) => {
               const isThreeOrMore = student.lateCount >= 3;
               const isFourOrMore = student.lateCount >= 4;
 
               return (
                 <div
                   key={student.id}
-                  className={`p-4 space-y-2.5 transition-colors ${
+                  className={`p-4 sm:p-5 rounded-2xl border transition-shadow shadow-xs space-y-3.5 ${
                     isFourOrMore
-                      ? 'bg-rose-50/60'
+                      ? 'bg-rose-50/80 border-rose-300 ring-1 ring-rose-200'
                       : isThreeOrMore
-                      ? 'bg-amber-50/50'
-                      : 'hover:bg-slate-50'
+                      ? 'bg-amber-50/70 border-amber-300'
+                      : 'bg-white border-slate-200 hover:border-emerald-300'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {isThreeOrMore ? (
-                        <div className="relative flex items-center justify-center flex-shrink-0">
-                          <span className="absolute inline-flex h-3.5 w-3.5 rounded-full bg-rose-400 opacity-75 animate-ping"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600 ring-2 ring-white"></span>
+                        <div className="relative flex items-center justify-center shrink-0">
+                          <span className="absolute inline-flex h-4 w-4 rounded-full bg-rose-400 opacity-75 animate-ping"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600 ring-2 ring-white"></span>
                         </div>
                       ) : (
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
                       )}
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-slate-900 font-mono text-sm">
+                          <span className="font-bold text-slate-900 font-mono text-base truncate">
                             {student.name}
                           </span>
                           {isThreeOrMore && (
                             <AlertTriangle
-                              className={`w-3.5 h-3.5 ${
+                              className={`w-4 h-4 shrink-0 ${
                                 isFourOrMore ? 'text-rose-600' : 'text-amber-600'
                               }`}
                             />
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[11px] text-slate-400 font-mono block mt-0.5">
                           ID: {student.id.toUpperCase()}
                         </span>
                       </div>
@@ -319,9 +309,9 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
 
                     {/* Badge */}
                     <span
-                      className={`px-2.5 py-0.5 rounded-full font-bold font-mono text-xs ${
+                      className={`px-3 py-1 rounded-full font-bold font-mono text-xs shrink-0 ${
                         isFourOrMore
-                          ? 'bg-rose-600 text-white shadow-xs animate-pulse'
+                          ? 'bg-rose-600 text-white shadow-xs'
                           : isThreeOrMore
                           ? 'bg-amber-500 text-emerald-950 shadow-xs'
                           : student.lateCount === 2
@@ -333,37 +323,41 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-900 font-semibold font-mono text-[11px]">
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-900 font-semibold font-mono text-xs">
                       Class {student.classNum} &bull; Sec {student.section}
                     </span>
 
-                    <div className="flex items-center gap-1 text-slate-500 text-[11px] font-mono">
-                      <Calendar className="w-3 h-3 text-slate-400" />
+                    <div className="flex items-center gap-1 text-slate-500 text-xs font-mono">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       <span>{student.lastDate}</span>
                     </div>
                   </div>
 
-                  <div className="pt-0.5">
+                  <div className="pt-0.5 flex items-center justify-between">
                     {isFourOrMore ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300">
-                        <MailCheck className="w-3 h-3 text-rose-600" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold border border-rose-300">
+                        <MailCheck className="w-3.5 h-3.5 text-rose-600" />
                         <span>Routed to Gmail Admin</span>
                       </span>
                     ) : isThreeOrMore ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-300">
-                        <AlertTriangle className="w-3 h-3 text-amber-700" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
                         <span>Warning Registry Flagged</span>
                       </span>
                     ) : student.lateCount === 2 ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-50 text-yellow-800 text-[10px] font-medium border border-yellow-200">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-yellow-50 text-yellow-800 text-xs font-medium border border-yellow-200">
                         <span>2nd Notice / Caution</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-medium border border-emerald-200">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200">
                         <span>1st Warning / Active</span>
                       </span>
                     )}
+
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      Campus 32
+                    </span>
                   </div>
                 </div>
               );
@@ -376,44 +370,35 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
           <table className="w-full text-left text-xs md:text-sm">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
               <tr>
-                <th className="py-3.5 px-4 font-bold text-emerald-950">#</th>
-                <th className="py-3.5 px-4 font-bold text-emerald-950">Student Full Name</th>
-                <th className="py-3.5 px-4 font-bold text-emerald-950">Class & Section</th>
-                <th className="py-3.5 px-4 font-bold text-emerald-950 text-center">Late Count</th>
-                <th className="py-3.5 px-4 font-bold text-emerald-950">Latest Incident Date</th>
-                <th className="py-3.5 px-4 font-bold text-emerald-950">Disciplinary Status</th>
+                <th className="py-4 px-5 font-bold text-emerald-950">#</th>
+                <th className="py-4 px-5 font-bold text-emerald-950">Student Full Name</th>
+                <th className="py-4 px-5 font-bold text-emerald-950">Class & Section</th>
+                <th className="py-4 px-5 font-bold text-emerald-950 text-center">Late Count</th>
+                <th className="py-4 px-5 font-bold text-emerald-950">Latest Incident Date</th>
+                <th className="py-4 px-5 font-bold text-emerald-950">Administrative Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-14 text-center">
-                    <div className="max-w-md mx-auto space-y-3">
+                  <td colSpan={6} className="py-16 text-center text-slate-500">
+                    <div className="max-w-xs mx-auto space-y-2">
                       <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto">
                         <CheckCircle2 className="w-6 h-6" />
                       </div>
-                      <h4 className="text-base font-bold text-slate-800 font-serif">
-                        {students.length === 0 ? 'No Late Student Records' : 'No Matching Student Records'}
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        {students.length === 0
-                          ? 'Zero late entries logged for Campus 32. Authorized staff can record morning late entries via the Management Panel.'
-                          : 'Try changing the search filter or class category above.'}
+                      <p className="font-bold text-slate-800 font-serif">
+                        {students.length === 0 ? 'No Late Student Records' : 'No Matching Records'}
                       </p>
-                      {students.length === 0 && (
-                        <button
-                          onClick={onOpenManagement}
-                          className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-900 hover:bg-emerald-800 text-amber-300 font-semibold text-xs transition cursor-pointer shadow-xs"
-                        >
-                          <PlusCircle className="w-3.5 h-3.5 text-amber-300" />
-                          <span>Open Management Panel</span>
-                        </button>
-                      )}
+                      <p className="text-xs text-slate-400">
+                        {students.length === 0
+                          ? 'Zero late entries logged for Campus 32.'
+                          : 'Try clearing or changing your search criteria.'}
+                      </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((student, idx) => {
+                filteredStudents.map((student, index) => {
                   const isThreeOrMore = student.lateCount >= 3;
                   const isFourOrMore = student.lateCount >= 4;
 
@@ -424,44 +409,34 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
                         isFourOrMore
                           ? 'bg-rose-50/50 hover:bg-rose-50'
                           : isThreeOrMore
-                          ? 'bg-amber-50/40 hover:bg-amber-50/80'
+                          ? 'bg-amber-50/40 hover:bg-amber-50/70'
                           : 'hover:bg-slate-50/80'
                       }`}
                     >
-                      {/* Row Index */}
-                      <td className="py-3.5 px-4 font-mono text-slate-400 font-semibold text-xs">
-                        {idx + 1}
+                      {/* Rank Index */}
+                      <td className="py-4 px-5 font-mono text-slate-400 text-xs">
+                        {index + 1}
                       </td>
 
-                      {/* Student Name with Visual Alert Anchor for 3+ lates */}
-                      <td className="py-3.5 px-4">
+                      {/* Student Full Name */}
+                      <td className="py-4 px-5">
                         <div className="flex items-center gap-2.5">
-                          {/* Visual Alert Anchor: Distinct warning symbol / flashing red warning light */}
                           {isThreeOrMore ? (
                             <div className="relative flex items-center justify-center flex-shrink-0">
-                              {/* Pulsing red ping indicator light */}
-                              <span className="absolute inline-flex h-4 w-4 rounded-full bg-rose-400 opacity-75 animate-ping"></span>
-                              <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600 ring-2 ring-white shadow-xs"></span>
+                              <span className="absolute inline-flex h-3.5 w-3.5 rounded-full bg-rose-400 opacity-75 animate-ping"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600 ring-2 ring-white"></span>
                             </div>
                           ) : (
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
                           )}
-
                           <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 font-mono tracking-wide text-sm">
-                                {student.name}
-                              </span>
+                            <div className="font-bold text-slate-900 font-mono flex items-center gap-1.5 text-sm">
+                              <span>{student.name}</span>
                               {isThreeOrMore && (
                                 <AlertTriangle
-                                  className={`w-3.5 h-3.5 flex-shrink-0 ${
-                                    isFourOrMore ? 'text-rose-600 animate-bounce' : 'text-amber-600'
+                                  className={`w-3.5 h-3.5 ${
+                                    isFourOrMore ? 'text-rose-600' : 'text-amber-600'
                                   }`}
-                                  title={
-                                    isFourOrMore
-                                      ? 'Critical 4+ Late Alert: Log dispatched to Gmail'
-                                      : '3-Times Late Flagged'
-                                  }
                                 />
                               )}
                             </div>
@@ -473,60 +448,55 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
                       </td>
 
                       {/* Class & Section */}
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200/70 font-semibold text-xs font-mono">
+                      <td className="py-4 px-5">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-900 font-semibold font-mono text-xs">
                           Class {student.classNum} &bull; Sec {student.section}
                         </span>
                       </td>
 
                       {/* Late Count Badge */}
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="inline-flex flex-col items-center">
-                          <span
-                            className={`px-3 py-1 rounded-full font-bold font-mono text-xs shadow-xs ${
-                              isFourOrMore
-                                ? 'bg-rose-600 text-white ring-2 ring-rose-300 animate-pulse'
-                                : isThreeOrMore
-                                ? 'bg-amber-500 text-emerald-950 ring-2 ring-amber-300'
-                                : student.lateCount === 2
-                                ? 'bg-emerald-100 text-emerald-900'
-                                : 'bg-slate-100 text-slate-700'
-                            }`}
-                          >
-                            {student.lateCount} Late{student.lateCount > 1 ? 's' : ''}
-                          </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
-                            {student.datesHistory.length} logged
-                          </span>
-                        </div>
+                      <td className="py-4 px-5 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center min-w-[32px] px-3 py-1 rounded-full font-bold font-mono text-xs ${
+                            isFourOrMore
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : isThreeOrMore
+                              ? 'bg-amber-500 text-emerald-950 shadow-xs'
+                              : student.lateCount === 2
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {student.lateCount}
+                        </span>
                       </td>
 
-                      {/* Latest Date */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-slate-700 font-mono text-xs">
+                      {/* Date of latest record */}
+                      <td className="py-4 px-5 text-slate-600 font-mono text-xs">
+                        <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           <span>{student.lastDate}</span>
                         </div>
                       </td>
 
-                      {/* Disciplinary Status */}
-                      <td className="py-3.5 px-4">
+                      {/* Administrative Status */}
+                      <td className="py-4 px-5">
                         {isFourOrMore ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 text-[11px] font-bold border border-rose-300">
-                            <MailCheck className="w-3 h-3 text-rose-600" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold border border-rose-300">
+                            <MailCheck className="w-3.5 h-3.5 text-rose-600" />
                             <span>Routed to Gmail Admin</span>
                           </span>
                         ) : isThreeOrMore ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-300">
-                            <AlertTriangle className="w-3 h-3 text-amber-700" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
                             <span>Warning Registry Flagged</span>
                           </span>
                         ) : student.lateCount === 2 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-yellow-50 text-yellow-800 text-[11px] font-medium border border-yellow-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-50 text-yellow-800 text-xs font-medium border border-yellow-200">
                             <span>2nd Notice / Caution</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200">
                             <span>1st Warning / Active</span>
                           </span>
                         )}
@@ -537,17 +507,6 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Public Notice Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span>Flashing red indicators denote students with 3 or more late counts automatically floated to top.</span>
-          </div>
-          <span className="text-[11px] text-emerald-900 font-semibold font-serif">
-            Usman Public School System &bull; Campus 32 Discipline Code
-          </span>
         </div>
       </div>
     </div>

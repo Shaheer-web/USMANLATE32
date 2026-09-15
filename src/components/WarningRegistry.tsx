@@ -9,7 +9,9 @@ import {
   Sparkles, 
   Info,
   Calendar,
-  UserCheck
+  UserCheck,
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 import { StudentEntry } from '../types';
 
@@ -17,12 +19,16 @@ interface WarningRegistryProps {
   students: StudentEntry[];
   onCheckAndDeleteStudent: (id: string, name: string) => void;
   onNavigateToManagement: () => void;
+  onNotifyTeacher?: (student: StudentEntry) => void;
+  teacherEmail?: string;
 }
 
 export const WarningRegistry: React.FC<WarningRegistryProps> = ({
   students,
   onCheckAndDeleteStudent,
   onNavigateToManagement,
+  onNotifyTeacher,
+  teacherEmail = '',
 }) => {
   // STRICT RULE: This tab must display ONLY students who have exactly a 3-time late status record.
   const threeLateStudents = students.filter((s) => s.lateCount === 3);
@@ -77,11 +83,14 @@ export const WarningRegistry: React.FC<WarningRegistryProps> = ({
       <div className="bg-amber-50/80 border border-amber-300 rounded-xl p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
         <div className="text-xs text-amber-950 space-y-1">
-          <p className="font-bold">
-            Administrative "Checked" Auto-Deletion Workflow:
+          <p className="font-bold flex items-center gap-1.5">
+            <span>Teacher Gmail Notification & "Checked" Resolution Workflow:</span>
+            <span className="px-1.5 py-0.5 bg-red-100 text-red-800 rounded font-semibold text-[10px]">
+              Gmail Ready
+            </span>
           </p>
           <p className="text-slate-700 leading-relaxed">
-            Clicking the <strong className="text-emerald-900">"Checked"</strong> action button triggers an instant, seamless deletion of that student’s record from the system database, signifying that administrative counseling has taken place.
+            When a student reaches 3 late arrivals, click <strong className="text-rose-700">"Notify Teacher"</strong> to immediately generate an email alert with student details for your teacher's Gmail to easily check. Once parent counseling is complete, clicking <strong className="text-emerald-900">"Checked"</strong> marks the matter resolved.
           </p>
         </div>
       </div>
@@ -188,18 +197,31 @@ export const WarningRegistry: React.FC<WarningRegistryProps> = ({
                       </div>
                     </div>
 
-                    {/* Action button: Checked (auto-deletes record) */}
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    {/* Action buttons: Send to Teacher Gmail & Checked (auto-deletes record) */}
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                      {onNotifyTeacher && (
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => onNotifyTeacher(student)}
+                          className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/50"
+                          title="Open instant Gmail dispatch to teacher for this student"
+                        >
+                          <Mail className="w-4 h-4 text-white" />
+                          <span>Notify Teacher</span>
+                        </motion.button>
+                      )}
+
                       <motion.button
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleCheckedClick(student.id, student.name)}
                         disabled={isBeingDeleted}
-                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer border border-emerald-600/50"
+                        className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-600/50"
                         title="Mark as Checked & seamlessly delete this student's late record"
                       >
                         <CheckCheck className="w-4 h-4 text-emerald-300" />
-                        <span>Checked (Delete Record)</span>
+                        <span>Checked</span>
                       </motion.button>
                     </div>
                   </motion.div>

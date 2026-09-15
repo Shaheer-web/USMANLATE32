@@ -13,7 +13,8 @@ import {
   ShieldAlert, 
   Sparkles,
   Search,
-  Filter
+  Filter,
+  Mail
 } from 'lucide-react';
 import { StudentEntry } from '../types';
 
@@ -29,6 +30,7 @@ interface ManagementPanelProps {
   onDeleteStudent: (id: string) => void;
   onResetSeedData: () => void;
   onLockAdmin: () => void;
+  onNotifyTeacher?: (student: StudentEntry) => void;
 }
 
 export const ManagementPanel: React.FC<ManagementPanelProps> = ({
@@ -38,6 +40,7 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
   onDeleteStudent,
   onResetSeedData,
   onLockAdmin,
+  onNotifyTeacher,
 }) => {
   // Form fields
   const [name, setName] = useState('');
@@ -468,6 +471,16 @@ export const ManagementPanel: React.FC<ManagementPanelProps> = ({
 
                     {/* Counter Controls */}
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {isWarning && onNotifyTeacher && (
+                        <button
+                          type="button"
+                          onClick={() => onNotifyTeacher(student)}
+                          className="p-1.5 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 transition cursor-pointer"
+                          title={`Send Gmail notification to teacher for ${student.name}`}
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <div className="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
                         <button
                           onClick={() => onUpdateLateCount(student.id, -1)}
