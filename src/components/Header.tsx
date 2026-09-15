@@ -83,17 +83,28 @@ export const Header: React.FC<HeaderProps> = ({
             />
           </div>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-xl font-bold tracking-tight text-white font-serif leading-tight">
-                Usman Public School System
-              </h1>
-              <span className="inline-flex items-center text-[10px] sm:text-xs font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+          <div className="min-w-0 flex flex-col justify-center">
+            {/* Line 1: Main School Title */}
+            <h1 className="text-sm sm:text-lg md:text-xl font-bold tracking-tight text-white font-serif leading-tight">
+              Usman Public School System
+            </h1>
+
+            {/* Line 2: Campus 32 Identification */}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300">
                 Campus 32
               </span>
+              <span className="text-emerald-400 text-[10px]">&bull;</span>
+              <span className="text-[10px] sm:text-xs text-emerald-200/90 font-medium">
+                Girls Campus (Class VI - X)
+              </span>
             </div>
-            <p className="text-xs sm:text-sm text-emerald-200/90 font-medium truncate mt-0.5">
-              Punctuality Ledger &bull; <span className="text-amber-300 font-serif">بَابُ الْانْضِبَاطِ</span>
+
+            {/* Line 3: System Purpose & Arabic Subtitle */}
+            <p className="text-[10px] sm:text-xs text-emerald-300/80 font-medium truncate mt-0.5 flex items-center gap-1.5">
+              <span>Punctuality Ledger</span>
+              <span>&bull;</span>
+              <span className="text-amber-300 font-serif font-semibold">بَابُ الْانْضِبَاطِ</span>
             </p>
           </div>
         </div>

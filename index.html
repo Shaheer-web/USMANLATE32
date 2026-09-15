@@ -5,30 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover" />
     <script>
       (function() {
-        // Strictly prevent all zoom behaviors across mobile and desktop
         try {
-          // iOS Safari gesture zoom prevention
+          // Disable Safari pinch-zoom gestures
           document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
           document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
           document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
-
-          // Prevent multi-touch pinch zoom (mobile Chrome & Safari)
-          document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) {
-              e.preventDefault();
-            }
-          }, { passive: false });
-
-          document.addEventListener('touchmove', function(e) {
-            if (e.touches.length > 1) {
-              e.preventDefault();
-            }
-          }, { passive: false });
-
-          // Prevent double click / tap zoom
-          document.addEventListener('dblclick', function(e) {
-            e.preventDefault();
-          }, { passive: false });
 
           // Prevent Ctrl + wheel zoom (desktop)
           window.addEventListener('wheel', function(e) {
@@ -37,21 +18,11 @@
             }
           }, { passive: false });
 
-          // Prevent keyboard zoom (Ctrl/Cmd + '+', '-', '0')
+          // Prevent keyboard zoom shortcuts (Ctrl/Cmd + '+', '-', '0')
           window.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
               e.preventDefault();
             }
-          }, { passive: false });
-
-          // Prevent double tap zoom on mobile
-          var lastTouchEnd = 0;
-          document.addEventListener('touchend', function(event) {
-            var now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-              event.preventDefault();
-            }
-            lastTouchEnd = now;
           }, { passive: false });
         } catch (err) {}
 
