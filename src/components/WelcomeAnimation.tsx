@@ -67,19 +67,10 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
         </span>
 
-        {/* Line 2: Usman Public School System */}
-        <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-white font-serif">
-          Usman Public School System
+        {/* Line 2: Usman C-32 */}
+        <h2 className="text-base sm:text-lg font-bold tracking-wider text-white font-serif">
+          Usman C-32
         </h2>
-
-        {/* Line 3: Campus 32 */}
-        <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs text-emerald-300/90 font-medium">
-          <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">
-            Campus 32
-          </span>
-          <span>&bull;</span>
-          <span>Girls Campus (Class VI - X)</span>
-        </div>
       </motion.div>
 
       {/* Centerpiece: Animated Words with 60fps GPU acceleration */}

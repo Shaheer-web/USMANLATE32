@@ -83,7 +83,7 @@ export const PublicDashboard: React.FC<PublicDashboardProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs tracking-wide">
-              Campus 32 &bull; Girls Section
+              Usman C-32
             </span>
             <span className="text-xs text-slate-500 hidden sm:inline">Daily Assembly & Gate Ledger</span>
           </div>
